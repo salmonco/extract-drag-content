@@ -1,3 +1,6 @@
-dist/
-node_modules/
-.yarn/
+**/.yarn/
+**/dist*/
+**/.cache/
+**/node_modules/
+src/popup/routeTree.gen.ts
+release/

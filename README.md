@@ -22,6 +22,7 @@ This boilerplate is using:
     - [typescript-eslint](https://www.npmjs.com/package/typescript-eslint)
 - [Prettier](https://prettier.io/)
 - [TypeScript](https://www.typescriptlang.org/)
+- [TanStack Router](https://tanstack.com/router)
 
 Please open up an issue to nudge me to keep the npm packages up-to-date.
 

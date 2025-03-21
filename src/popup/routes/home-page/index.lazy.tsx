@@ -1,31 +1,23 @@
 import { ReactElement, useEffect, useState } from 'react';
 
-import { Alert, Button, Snackbar, Stack } from '@mui/material';
+import { useSnackbar } from 'notistack';
+
+import { Button, Stack } from '@mui/material';
 import Box from '@mui/material/Box';
+import { createLazyFileRoute } from '@tanstack/react-router';
 
-import {
-    ChromeApiWrapper,
-    ChromeMessage,
-    ChromeMessageType
-} from '../../../common/chrome-api-wrapper';
-import { ScraperCommand, ScraperMessage } from '../../../common/types/scraper';
-import PopupContent from '../../components/PopupContent/PopupContent';
-import PopupHeader from '../../components/PopupHeader/PopupHeader';
-
-import './HomePage.css';
+import { ChromeApiWrapper, ChromeMessage, ChromeMessageType } from '@/common/chrome-api-wrapper';
+import { ScraperCommand, ScraperMessage } from '@/common/types/scraper';
+import PopupContent from '@/popup/modules/core/components/PopupContent/PopupContent';
+import PopupHeader from '@/popup/modules/core/components/PopupHeader/PopupHeader';
 
 const CACHE_KEY = 'scrapedPageTitle';
 
-export default function HomePage(): ReactElement {
+function HomePage(): ReactElement {
+    const { enqueueSnackbar } = useSnackbar();
+
     const [scrapedPageTitle, setScrapedPageTitle] = useState<string>('');
     const [disableScrapeButton, setDisableScrapeButton] = useState<boolean>(false);
-
-    const [showErrorSnackbar, setShowErrorSnackbar] = useState(false);
-    const [errorSnackbarMessage, setErrorSnackbarMessage] = useState('');
-
-    function handleSnackbarClose() {
-        setShowErrorSnackbar(false);
-    }
 
     async function scrape() {
         setDisableScrapeButton(true);
@@ -39,8 +31,10 @@ export default function HomePage(): ReactElement {
             await ChromeApiWrapper.sendTabMessage(message);
         } catch (e) {
             console.error(e);
-            setErrorSnackbarMessage('Failed to scrape page title. Please check console logs.');
-            setShowErrorSnackbar(true);
+            enqueueSnackbar('Failed to scrape page title. Please check console logs.', {
+                variant: 'error'
+            });
+
             setDisableScrapeButton(false);
         }
     }
@@ -86,19 +80,10 @@ export default function HomePage(): ReactElement {
                     </Button>
                 </Stack>
             </PopupContent>
-            <Snackbar
-                open={showErrorSnackbar}
-                autoHideDuration={5000}
-                onClose={handleSnackbarClose}
-            >
-                <Alert
-                    className="alert-snackbar-alert"
-                    severity="error"
-                    onClose={handleSnackbarClose}
-                >
-                    {errorSnackbarMessage}
-                </Alert>
-            </Snackbar>
         </>
     );
 }
+
+export const Route = createLazyFileRoute('/home-page/')({
+    component: HomePage
+});

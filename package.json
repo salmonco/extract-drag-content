@@ -18,15 +18,18 @@
         "@mui/icons-material": "^6.4.8",
         "@mui/material": "^6.4.8",
         "@mui/system": "^6.4.8",
+        "@tanstack/react-router": "^1.114.27",
         "axios": "^1.8.4",
+        "notistack": "^3.0.2",
         "react": "^19.0.0",
-        "react-dom": "^19.0.0",
-        "react-router-dom": "^6.30.0"
+        "react-dom": "^19.0.0"
     },
     "devDependencies": {
-        "@crxjs/vite-plugin": "2.0.0-beta.30",
+        "@crxjs/vite-plugin": "2.0.0-beta.32",
         "@eslint/js": "^9.23.0",
+        "@tanstack/router-plugin": "^1.114.27",
         "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+        "@types/node": "^22.13.11",
         "@types/react": "^19.0.12",
         "@types/react-dom": "^19.0.4",
         "@vitejs/plugin-react": "^4.3.4",

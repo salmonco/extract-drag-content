@@ -1,23 +1,43 @@
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
 
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { SnackbarProvider } from 'notistack';
 
-import AppShell from './AppShell/AppShell';
-import PopupHeader from './components/PopupHeader/PopupHeader';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { RouterProvider, createRouter } from '@tanstack/react-router';
 
-const HomePage = lazy(() => import('./features/HomePage/HomePage'));
+import PopupHeader from '@/popup/modules/core/components/PopupHeader/PopupHeader';
+
+import AlertSnackbar from './modules/core/components/AlertSnackbar';
+import { routeTree } from './routeTree.gen';
+
+const router = createRouter({
+    routeTree: routeTree
+});
+
+// Register the router instance for type safety
+declare module '@tanstack/react-router' {
+    interface Register {
+        router: typeof router;
+    }
+}
+
+const theme = createTheme();
 
 export default function App() {
     return (
-        <MemoryRouter>
-            <AppShell>
+        <ThemeProvider theme={theme}>
+            <SnackbarProvider
+                Components={{
+                    error: AlertSnackbar,
+                    success: AlertSnackbar,
+                    warning: AlertSnackbar,
+                    info: AlertSnackbar
+                }}
+            >
                 <Suspense fallback={<PopupHeader />}>
-                    <Routes>
-                        <Route path="/" element={<PopupHeader />} />
-                        <Route path="/home-page" element={<HomePage />} />
-                    </Routes>
+                    <RouterProvider router={router} />
                 </Suspense>
-            </AppShell>
-        </MemoryRouter>
+            </SnackbarProvider>
+        </ThemeProvider>
     );
 }
