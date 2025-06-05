@@ -1,83 +1,75 @@
 import { ReactElement, useEffect, useState } from 'react';
 
-import { useSnackbar } from 'notistack';
-
-import { Button, Stack } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import { createLazyFileRoute } from '@tanstack/react-router';
 
-import { ChromeApiWrapper, ChromeMessage, ChromeMessageType } from '@/common/chrome-api-wrapper';
-import { ScraperCommand, ScraperMessage } from '@/common/types/scraper';
+import { ChromeMessage, ChromeMessageType } from '@/common/chrome-api-wrapper';
 import PopupContent from '@/popup/modules/core/components/PopupContent/PopupContent';
 import PopupHeader from '@/popup/modules/core/components/PopupHeader/PopupHeader';
 
-const CACHE_KEY = 'scrapedPageTitle';
+interface SelectedText {
+    type: 'selection';
+    content: string;
+    pageTitle: string;
+}
 
 function HomePage(): ReactElement {
-    const { enqueueSnackbar } = useSnackbar();
-
-    const [scrapedPageTitle, setScrapedPageTitle] = useState<string>('');
-    const [disableScrapeButton, setDisableScrapeButton] = useState<boolean>(false);
-
-    async function scrape() {
-        setDisableScrapeButton(true);
-
-        const message: ChromeMessage<ScraperMessage> = {
-            type: ChromeMessageType.SCRAPER_COMMAND,
-            payload: { command: ScraperCommand.SCRAPE }
-        };
-
-        try {
-            await ChromeApiWrapper.sendTabMessage(message);
-        } catch (e) {
-            console.error(e);
-            enqueueSnackbar('Failed to scrape page title. Please check console logs.', {
-                variant: 'error'
-            });
-
-            setDisableScrapeButton(false);
-        }
-    }
+    const [selectedText, setSelectedText] = useState<SelectedText | null>(null);
 
     useEffect(() => {
-        chrome.storage.session.get(CACHE_KEY).then(items => {
-            const cachedTitle = items[CACHE_KEY];
-            setScrapedPageTitle(cachedTitle ?? '');
-        });
+        // 메시지 리스너 설정
+        const messageListener = (message: ChromeMessage<SelectedText>) => {
+            console.debug('Popup received message:', message);
 
-        chrome.runtime.onMessage.addListener((message: ChromeMessage<string>) => {
             if (message.type !== ChromeMessageType.SCRAPING_RESULTS) {
                 return false;
             }
 
-            chrome.storage.session.set({ [CACHE_KEY]: message.payload });
-            setScrapedPageTitle(message.payload);
-            setDisableScrapeButton(false);
+            if (message.payload.type === 'selection') {
+                setSelectedText(message.payload);
+            }
+
             return false;
-        });
+        };
+
+        chrome.runtime.onMessage.addListener(messageListener);
+
+        return () => {
+            chrome.runtime.onMessage.removeListener(messageListener);
+        };
     }, []);
 
     return (
         <>
             <PopupHeader />
             <PopupContent>
-                <Stack alignItems="center" spacing={1}>
-                    <Box alignItems="center">
-                        <h1>My Chromium extension</h1>
-                    </Box>
+                <Stack spacing={2}>
+                    <Typography variant="h6">Selected Text</Typography>
 
-                    <p>
-                        <strong>Scraped title:</strong> {scrapedPageTitle}
-                    </p>
-
-                    <Button
-                        className="scrape-button"
-                        variant="contained"
-                        disabled={disableScrapeButton}
-                        onClick={scrape}
-                    >
-                        Scrape page title
-                    </Button>
+                    {selectedText ? (
+                        <Box>
+                            <Typography variant="subtitle2" color="text.secondary">
+                                From: {selectedText.pageTitle}
+                            </Typography>
+                            <Typography
+                                sx={{
+                                    mt: 1,
+                                    p: 2,
+                                    bgcolor: 'grey.100',
+                                    borderRadius: 1,
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-word'
+                                }}
+                            >
+                                {selectedText.content}
+                            </Typography>
+                        </Box>
+                    ) : (
+                        <Typography color="text.secondary">
+                            Select text on the page to see it here
+                        </Typography>
+                    )}
                 </Stack>
             </PopupContent>
         </>
